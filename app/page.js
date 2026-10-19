@@ -417,6 +417,9 @@ export default function HomePage() {
             </span>
           </a>
           <p>© <span id="year">{year}</span> Singh &amp; Associates. All rights reserved.</p>
+          <p>
+            <a href="/adminAccess/">Admin page</a>
+          </p>
           <p>Monday–Saturday · 10 AM to 7 PM</p>
         </div>
       </footer>
