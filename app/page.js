@@ -3,9 +3,18 @@
 import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
+function digitsOnly(value) {
+  return String(value || "").replace(/\D/g, "").slice(0, 11);
+}
+
+function isIndianPhone(phone) {
+  return /^[6-9]\d{9}$/.test(phone) || /^0?[1-5]\d{9}$/.test(phone);
+}
+
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [formNote, setFormNote] = useState("");
+  const [phone, setPhone] = useState("");
   const [sending, setSending] = useState(false);
   const year = new Date().getFullYear();
 
@@ -28,10 +37,17 @@ export default function HomePage() {
     }
 
     const data = new FormData(form);
+    const phoneNumber = digitsOnly(data.get("phone"));
+    if (!isIndianPhone(phoneNumber)) {
+      setFormNote("Enter a 10-digit mobile number, or a landline with STD code (11 digits starting with 0). Digits only.");
+      setSending(false);
+      return;
+    }
+
     const supabase = createClient(url, key);
     const { error } = await supabase.from("inquiries").insert({
       name: String(data.get("name") || "").trim(),
-      phone: String(data.get("phone") || "").trim(),
+      phone: phoneNumber,
       service: String(data.get("service") || "").trim(),
     });
 
@@ -40,6 +56,7 @@ export default function HomePage() {
     } else {
       setFormNote("Thank you. Your enquiry has been received. We will contact you shortly.");
       form.reset();
+      setPhone("");
     }
     setSending(false);
   }
@@ -352,7 +369,19 @@ export default function HomePage() {
               </label>
               <label>
                 Phone number
-                <input required name="phone" type="tel" placeholder="Enter your phone number" />
+                <input
+                  required
+                  name="phone"
+                  type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel-national"
+                  maxLength={11}
+                  pattern="[6-9][0-9]{9}|0?[1-5][0-9]{9}"
+                  title="10-digit mobile, or landline with STD code (11 digits starting with 0). Digits only."
+                  placeholder="Enter your phone number"
+                  value={phone}
+                  onChange={(event) => setPhone(digitsOnly(event.target.value))}
+                />
               </label>
               <label>
                 How can we help?
